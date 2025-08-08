@@ -17,7 +17,6 @@ hands = mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.5
 mp_draw = mp.solutions.drawing_utils
 
 yawn_detected = False
-hand_detected = False
 
 # Track last action time
 last_yawn_time = 0
@@ -36,6 +35,24 @@ def pause_youtube():
 def switch_tab():
     os.system("xdotool key ctrl+Tab")
 
+def close_tab():
+    os.system("xdotool key ctrl+w")
+
+def is_victory_sign(hand_landmarks):
+    """
+    Detects the victory sign (two fingers up).
+    Checks if index and middle fingers are extended, and ring and pinky fingers are folded.
+    """
+    finger_tips_ids = [8, 12, 16, 20]  # Index, Middle, Ring, Pinky tips
+    finger_pip_ids = [6, 10, 14, 18]   # Index, Middle, Ring, Pinky PIP joints
+
+    index_finger_up = hand_landmarks.landmark[finger_tips_ids[0]].y < hand_landmarks.landmark[finger_pip_ids[0]].y
+    middle_finger_up = hand_landmarks.landmark[finger_tips_ids[1]].y < hand_landmarks.landmark[finger_pip_ids[1]].y
+    ring_finger_down = hand_landmarks.landmark[finger_tips_ids[2]].y > hand_landmarks.landmark[finger_pip_ids[2]].y
+    pinky_finger_down = hand_landmarks.landmark[finger_tips_ids[3]].y > hand_landmarks.landmark[finger_pip_ids[3]].y
+
+    return index_finger_up and middle_finger_up and ring_finger_down and pinky_finger_down
+
 cap = cv2.VideoCapture(0)
 
 while True:
@@ -47,7 +64,6 @@ while True:
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     rects = detector(gray, 0)
 
-    hand_detected = False
     current_time = time.time()
 
     # Yawn detection with cooldown
@@ -66,19 +82,25 @@ while True:
         else:
             yawn_detected = False
 
-    # Hand detection with cooldown
+    # Hand detection with cooldown and gesture recognition
     image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     results = hands.process(image_rgb)
 
+    hand_detected = False
+
     if results.multi_hand_landmarks:
-        hand_detected = True
         for hand_landmarks in results.multi_hand_landmarks:
             mp_draw.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
-    if hand_detected and (current_time - last_hand_time > DELAY):
-        last_hand_time = current_time
-        print("Hand detected! Switching tab...")
-        switch_tab()
+            if is_victory_sign(hand_landmarks) and (current_time - last_hand_time > DELAY):
+                last_hand_time = current_time
+                print("Victory sign detected! Closing tab...")
+                close_tab()
+            else:
+                if (current_time - last_hand_time > DELAY):
+                    last_hand_time = current_time
+                    print("Hand detected! Switching tab...")
+                    switch_tab()
 
     cv2.imshow("Yawn & Hand Detector", frame)
 
