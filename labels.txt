@@ -1,0 +1,3 @@
+0 yawn
+1 eyes_closed
+2 palm
