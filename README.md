@@ -5,7 +5,7 @@ Meet **Lazy Assistant** – the totally unnecessary but weirdly satisfying proje
 
 ## 🤔 What It Does
 - **Yawn** 😪 → Instantly hits `Space` for you (perfect for pausing YouTube mid-binge).
-- **Close your eyes for 10+ seconds** 😴 → Sends your PC straight to sleep (and maybe you too).
+- **show a 'perfect' hand sign** 😴 → Sends your PC straight to sleep (and maybe you too).
 - **Show your palm** ✋ → Switches to the next browser tab (Ctrl+Tab magic).
 
 Basically, it’s like having a lazy, slightly creepy roommate that watches you through your webcam and pushes buttons for you.
