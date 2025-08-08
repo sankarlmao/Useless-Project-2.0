@@ -1,100 +1,73 @@
 import cv2
-import time
-import os
-import platform
+import dlib
 import pyautogui
-from inference_sdk import InferenceHTTPClient
+import os
+from scipy.spatial import distance as dist
+import time
 
-# ==============================
-# Roboflow API Setup
-# ==============================
-client = InferenceHTTPClient(
-    api_url="https://app.roboflow.com/sankar-pz6eq/workflows/edit/detect-and-classify-4",
-    api_key="9hOl5qU46mp0hE5rdlKg"  # <- paste your key here
-)
+# Path to the dlib shape predictor file
+SHAPE_PREDICTOR_PATH = "shape_predictor_68_face_landmarks.dat"
 
-workspace_name = "sankar-pz6eq"   
-workflow_id = "detect-and-classify-4"       
+# Indices for mouth landmarks
+(mStart, mEnd) = (48, 68)
 
+# Yawn detection threshold
+YAWN_THRESH = 0.6
+yawn_detected = False
 
-# ==============================
-# Helper: Sleep/Shutdown
-# ==============================
-def sleep_system():
-    os_name = platform.system()
-    if os_name == "Windows":
-        os.system("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")
-    elif os_name == "Darwin":  # macOS
-        os.system("pmset sleepnow")
-    elif os_name == "Linux":
-        os.system("systemctl suspend")
-    else:
-        print("Unsupported OS for sleep command.")
+# Load face detector and landmark predictor
+detector = dlib.get_frontal_face_detector()
+predictor = dlib.shape_predictor(SHAPE_PREDICTOR_PATH)
 
-# ==============================
-# Webcam Setup
-# ==============================
+def mouth_aspect_ratio(mouth):
+    A = dist.euclidean(mouth[2], mouth[10])  # vertical
+    B = dist.euclidean(mouth[4], mouth[8])   # vertical
+    C = dist.euclidean(mouth[0], mouth[6])   # horizontal
+    return (A + B) / (2.0 * C)
+
+# Function to pause YouTube in Chrome
+def pause_youtube():
+    # Simulate pressing space (works if video tab is active)
+    os.system("xdotool key space")
+
+# Function to switch Chrome tabs
+def switch_tab(direction="next"):
+    if direction == "next":
+        os.system("xdotool key ctrl+Tab")
+    elif direction == "prev":
+        os.system("xdotool key ctrl+shift+Tab")
+
+# Start video capture
 cap = cv2.VideoCapture(0)
-eye_closed_start = None
 
 while True:
     ret, frame = cap.read()
     if not ret:
         break
 
-    frame = cv2.flip(frame, 1)  # mirror effect
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    rects = detector(gray, 0)
 
-    # Save temp frame to send to API
-    temp_path = "temp.jpg"
-    cv2.imwrite(temp_path, frame)
+    for rect in rects:
+        shape = predictor(gray, rect)
+        shape = [(shape.part(i).x, shape.part(i).y) for i in range(68)]
+        mouth = shape[mStart:mEnd]
+        mar = mouth_aspect_ratio(mouth)
 
-    # Get prediction from Roboflow
-    result = client.run_workflow(
-        workspace_name=workspace_name,
-        workflow_id=workflow_id,
-        images={"image": temp_path},
-        use_cache=True
-    )
+        if mar > YAWN_THRESH and not yawn_detected:
+            yawn_detected = True
+            print("Yawn detected! Pausing YouTube...")
+            pause_youtube()
+            switch_tab("next")  # Change to "prev" if needed
 
-    # Parse predictions
-    if "predictions" in result and result["predictions"]:
-        for pred in result["predictions"]:
-            label = pred["class"].lower()
-            conf = pred["confidence"]
+        elif mar <= YAWN_THRESH:
+            yawn_detected = False
 
-            cv2.putText(frame, f"{label} ({conf*100:.1f}%)",
-                        (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
-                        1, (0, 255, 0), 2)
+    cv2.imshow("Yawn Detector", frame)
 
-            # === Yawn detection ===
-            if label == "yawn" and conf > 0.85:
-                print("[ACTION] Yawn detected → Pressing Space")
-                pyautogui.press("space")
-                time.sleep(1)
-
-            # === Eyes closed for >10 sec ===
-            if label == "eyes_closed" and conf > 0.85:
-                if eye_closed_start is None:
-                    eye_closed_start = time.time()
-                elif time.time() - eye_closed_start >= 10:
-                    print("[ACTION] Eyes closed >10s → Sleeping system")
-                    sleep_system()
-                    break
-            else:
-                eye_closed_start = None
-
-            # === Palm gesture ===
-            if label == "palm" and conf > 0.85:
-                print("[ACTION] Palm detected → Switching browser tab")
-                pyautogui.hotkey("ctrl", "tab")
-                time.sleep(1)
-
-    # Show webcam
-    cv2.imshow("Lazy Assistant - Roboflow", frame)
-
-    # Exit if Q pressed
-    if cv2.waitKey(1) & 0xFF == ord("q"):
+    if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
 cap.release()
 cv2.destroyAllWindows()
+s
