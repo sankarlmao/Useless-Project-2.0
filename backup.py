@@ -1,95 +1,96 @@
 import cv2
-import numpy as np
-import tensorflow.keras
-import pyautogui
-import time
+import dlib
 import os
-import platform
+from scipy.spatial import distance as dist
+import mediapipe as mp
 
-# ==============================
-# Load Teachable Machine model
-# ==============================
-try:
-    model = tensorflow.keras.models.load_model("keras_model.h5", compile=False)
-    class_names = open("labels.txt", "r").readlines()
-except Exception as e:
-    print("Error loading model or labels. Make sure keras_model.h5 and labels.txt are in the same folder.")
-    print(e)
-    exit()
+# Path to the dlib shape predictor file
+SHAPE_PREDICTOR_PATH = "shape_predictor_68_face_landmarks.dat"
 
-# ==============================
-# Setup webcam
-# ==============================
+# Indices for mouth landmarks
+(mStart, mEnd) = (48, 68)
+
+# Yawn detection threshold
+YAWN_THRESH = 0.6
+
+# Initialize dlib's face detector and shape predictor
+detector = dlib.get_frontal_face_detector()
+predictor = dlib.shape_predictor(SHAPE_PREDICTOR_PATH)
+
+# Initialize MediaPipe Hands
+mp_hands = mp.solutions.hands
+hands = mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.5)
+mp_draw = mp.solutions.drawing_utils
+
+yawn_detected = False
+hand_detected = False
+
+def mouth_aspect_ratio(mouth):
+    A = dist.euclidean(mouth[2], mouth[10])  # vertical
+    B = dist.euclidean(mouth[4], mouth[8])   # vertical
+    C = dist.euclidean(mouth[0], mouth[6])   # horizontal
+    return (A + B) / (2.0 * C)
+
+def pause_youtube():
+    # Simulate pressing space (works if video tab is active)
+    os.system("xdotool key space")
+
+def switch_tab():
+    # Simulate pressing ctrl+tab to switch tab
+    os.system("xdotool key ctrl+Tab")
+
+# Start video capture
 cap = cv2.VideoCapture(0)
-eye_closed_start = None  # Timer for eyes closed
 
-# ==============================
-# Helper: Sleep/Shutdown
-# ==============================
-def sleep_system():
-    os_name = platform.system()
-    if os_name == "Windows":
-        os.system("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")  # Sleep
-    elif os_name == "Darwin":  # macOS
-        os.system("pmset sleepnow")
-    elif os_name == "Linux":
-        os.system("systemctl suspend")
-    else:
-        print("Unsupported OS for sleep command.")
-
-# ==============================
-# Main loop
-# ==============================
 while True:
     ret, frame = cap.read()
     if not ret:
         break
 
-    frame = cv2.flip(frame, 1)  # Mirror effect
+    # Flip frame horizontally for natural (mirror) view
+    frame = cv2.flip(frame, 1)
 
-    # Prepare frame for prediction
-    img = cv2.resize(frame, (224, 224))
-    img = np.asarray(img, dtype=np.float32).reshape(1, 224, 224, 3)
-    img = (img / 127.5) - 1  # Normalize to [-1, 1]
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    rects = detector(gray, 0)
 
-    prediction = model.predict(img)
-    index = np.argmax(prediction)
-    class_name = class_names[index].strip().lower()
-    confidence_score = prediction[0][index]
+    # Reset flags each frame
+    hand_detected = False
 
-    # Show prediction on screen
-    cv2.putText(frame, f"{class_name} ({confidence_score*100:.1f}%)", (10, 30),
-                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+    # Detect faces and check for yawn
+    for rect in rects:
+        shape = predictor(gray, rect)
+        shape = [(shape.part(i).x, shape.part(i).y) for i in range(68)]
+        mouth = shape[mStart:mEnd]
+        mar = mouth_aspect_ratio(mouth)
 
-    # === Part 1: Yawn detection ===
-    if class_name == "yawn" and confidence_score > 0.85:
-        print("[ACTION] Yawn detected → Pressing Space")
-        pyautogui.press("space")
-        time.sleep(1)  # Avoid multiple triggers
+        if mar > YAWN_THRESH and not yawn_detected:
+            yawn_detected = True
+            print("Yawn detected! Pausing YouTube...")
+            pause_youtube()
+        elif mar <= YAWN_THRESH:
+            yawn_detected = False
 
-    # === Part 2: Eyes closed for >10 sec ===
-    if class_name == "eyes_closed" and confidence_score > 0.85:
-        if eye_closed_start is None:
-            eye_closed_start = time.time()
-        elif time.time() - eye_closed_start >= 10:
-            print("[ACTION] Eyes closed >10s → Sleeping system")
-            sleep_system()
-            break
-    else:
-        eye_closed_start = None
+    # Hand detection using MediaPipe
+    image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    results = hands.process(image_rgb)
 
-    # === Part 3: Palm gesture ===
-    if class_name == "palm" and confidence_score > 0.85:
-        print("[ACTION] Palm detected → Switching browser tab")
-        pyautogui.hotkey("ctrl", "tab")
-        time.sleep(1)
+    if results.multi_hand_landmarks:
+        hand_detected = True
+        # Draw hand landmarks on frame
+        for hand_landmarks in results.multi_hand_landmarks:
+            mp_draw.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
-    # Display webcam
-    cv2.imshow("Lazy Assistant", frame)
+    # If hand detected, execute tab switch once
+    if hand_detected:
+        print("Hand detected! Switching tab...")
+        switch_tab()
 
-    # Exit if Q pressed
-    if cv2.waitKey(1) & 0xFF == ord("q"):
+    # Show the output frame
+    cv2.imshow("Yawn & Hand Detector", frame)
+
+    if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
 cap.release()
 cv2.destroyAllWindows()
+hands.close()
