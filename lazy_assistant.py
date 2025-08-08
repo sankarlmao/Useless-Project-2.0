@@ -1,27 +1,21 @@
 import cv2
-import numpy as np
-import tensorflow.keras
-import pyautogui
 import time
 import os
 import platform
+import pyautogui
+from inference_sdk import InferenceHTTPClient
 
 # ==============================
-# Load Teachable Machine model
+# Roboflow API Setup
 # ==============================
-try:
-    model = tensorflow.keras.models.load_model("keras_model.h5", compile=False)
-    class_names = open("labels.txt", "r").readlines()
-except Exception as e:
-    print("Error loading model or labels. Make sure keras_model.h5 and labels.txt are in the same folder.")
-    print(e)
-    exit()
+client = InferenceHTTPClient(
+    api_url="https://app.roboflow.com/sankar-pz6eq/workflows/edit/detect-and-classify-4",
+    api_key="9hOl5qU46mp0hE5rdlKg"  # <- paste your key here
+)
 
-# ==============================
-# Setup webcam
-# ==============================
-cap = cv2.VideoCapture(0)
-eye_closed_start = None  # Timer for eyes closed
+workspace_name = "sankar-pz6eq"   
+workflow_id = "detect-and-classify-4"       
+
 
 # ==============================
 # Helper: Sleep/Shutdown
@@ -29,7 +23,7 @@ eye_closed_start = None  # Timer for eyes closed
 def sleep_system():
     os_name = platform.system()
     if os_name == "Windows":
-        os.system("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")  # Sleep
+        os.system("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")
     elif os_name == "Darwin":  # macOS
         os.system("pmset sleepnow")
     elif os_name == "Linux":
@@ -38,54 +32,65 @@ def sleep_system():
         print("Unsupported OS for sleep command.")
 
 # ==============================
-# Main loop
+# Webcam Setup
 # ==============================
+cap = cv2.VideoCapture(0)
+eye_closed_start = None
+
 while True:
     ret, frame = cap.read()
     if not ret:
         break
 
-    frame = cv2.flip(frame, 1)  # Mirror effect
+    frame = cv2.flip(frame, 1)  # mirror effect
 
-    # Prepare frame for prediction
-    img = cv2.resize(frame, (224, 224))
-    img = np.asarray(img, dtype=np.float32).reshape(1, 224, 224, 3)
-    img = (img / 127.5) - 1  # Normalize to [-1, 1]
+    # Save temp frame to send to API
+    temp_path = "temp.jpg"
+    cv2.imwrite(temp_path, frame)
 
-    prediction = model.predict(img)
-    index = np.argmax(prediction)
-    class_name = class_names[index].strip().lower()
-    confidence_score = prediction[0][index]
+    # Get prediction from Roboflow
+    result = client.run_workflow(
+        workspace_name=workspace_name,
+        workflow_id=workflow_id,
+        images={"image": temp_path},
+        use_cache=True
+    )
 
-    # Show prediction on screen
-    cv2.putText(frame, f"{class_name} ({confidence_score*100:.1f}%)", (10, 30),
-                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+    # Parse predictions
+    if "predictions" in result and result["predictions"]:
+        for pred in result["predictions"]:
+            label = pred["class"].lower()
+            conf = pred["confidence"]
 
-    # === Part 1: Yawn detection ===
-    if class_name == "yawn" and confidence_score > 0.85:
-        print("[ACTION] Yawn detected → Pressing Space")
-        pyautogui.press("space")
-        time.sleep(1)  # Avoid multiple triggers
+            cv2.putText(frame, f"{label} ({conf*100:.1f}%)",
+                        (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
+                        1, (0, 255, 0), 2)
 
-    # === Part 2: Eyes closed for >10 sec ===
-    if class_name == "eyes_closed" and confidence_score > 0.85:
-        if eye_closed_start is None:
-            eye_closed_start = time.time()
-        elif time.time() - eye_closed_start >= 10:
-            print("[ACTION] Eyes closed >10s → Sleeping system")
-            sleep_system()
-            break
-    else:
-        eye_closed_start = None
+            # === Yawn detection ===
+            if label == "yawn" and conf > 0.85:
+                print("[ACTION] Yawn detected → Pressing Space")
+                pyautogui.press("space")
+                time.sleep(1)
 
-    # === Part 3: Palm gesture ===
-    if class_name == "palm" and confidence_score > 0.85:
-        print("[ACTION] Palm detected → Switching browser tab")
-        pyautogui.hotkey("ctrl", "tab")
-        time.sleep(1)
+            # === Eyes closed for >10 sec ===
+            if label == "eyes_closed" and conf > 0.85:
+                if eye_closed_start is None:
+                    eye_closed_start = time.time()
+                elif time.time() - eye_closed_start >= 10:
+                    print("[ACTION] Eyes closed >10s → Sleeping system")
+                    sleep_system()
+                    break
+            else:
+                eye_closed_start = None
 
-    # Display webcam
-    cv2.imshow("Lazy Assistant", frame)
+            # === Palm gesture ===
+            if label == "palm" and conf > 0.85:
+                print("[ACTION] Palm detected → Switching browser tab")
+                pyautogui.hotkey("ctrl", "tab")
+                time.sleep(1)
+
+    # Show webcam
+    cv2.imshow("Lazy Assistant - Roboflow", frame)
 
     # Exit if Q pressed
     if cv2.waitKey(1) & 0xFF == ord("q"):
