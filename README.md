@@ -1,7 +1,7 @@
 <img width="3188" height="1202" alt="frame (3)" src="https://github.com/user-attachments/assets/517ad8e9-ad22-457d-9538-a9e62d137cd7" />
 
 
-# [Lazy_assistant] 🎯
+# Lazy_assistant 🎯
 
 
 ## Basic Details
@@ -63,29 +63,29 @@ User Interaction: Real-time visual feedback via OpenCV window displaying webcam 
 
 # Screenshots (Add at least 3)
 <img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/155389fe-65a0-4d28-9e4c-b07d4b455bc4" />
+yawn detecting
 
-*Add caption explaining what this shows*
+This screenshot shows a custom-built AI program that detects when a user yawns and automatically pauses their YouTube video.
 
-![Screenshot2](Add screenshot 2 here with proper name)
-*Add caption explaining what this shows*
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/84a06c8f-7af4-4261-af69-fd9426df0d46" />
+Switching browser tab with one hand.
 
-![Screenshot3](Add screenshot 3 here with proper name)
-*Add caption explaining what this shows*
+Here, the same AI project is shown using hand gesture recognition to switch browser tabs, demonstrating its 'lazy assistant' capabilities.
 
-# Diagrams
-![Workflow](Add your workflow/architecture diagram here)
-*Add caption explaining your workflow*
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/510a4f8b-ca6a-4cef-8a58-7889f2ce7b47" />
+Closing tab with two hands.
+A demonstration of a hand gesture recognition program, part of a 'lazy assistant' project, used to close tab.
 
 
 ### Project Demo
 # Video
-[Add your demo video link here]
+[(https://drive.google.com/file/d/12A17TOKXQZdr1_WQnOqhTeqeTAZhvpXc/view?usp=drivesdk)]
 *Explain what the video demonstrates*
 
 
 ## Team Contributions
-- [Sankar]: [Specific contributions]
-- [Linsa]: [Specific contributions]
+- [Sankar]: [My work involved building its central feature—a real-time computer vision engine for yawn and gesture detection using Python, OpenCV, and MediaPipe]
+- [Linsa]: [I used Roboflow to train the custom detection model, from preparing the dataset and training the model.]
   
 ---
 Made with ❤️ at TinkerHub Useless Projects 
