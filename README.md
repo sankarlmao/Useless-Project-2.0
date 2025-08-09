@@ -28,7 +28,6 @@ Control your computer with yawns and peace signs — no fingers required! It’s
 ## Technical Details
 ### Technologies/Components Used
 For Software:
-
 OpenCV: For capturing and processing video frames in real-time.
 Dlib: To detect facial landmarks and calculate mouth aspect ratio for yawn detection.
 MediaPipe Hands: For accurate hand tracking and gesture recognition.
@@ -39,7 +38,6 @@ Python: The main programming language used to integrate all components seamlessl
 ### Implementation
 For Software:
 # Installation
-
 sudo apt update
 sudo apt install -y python3-pip python3-opencv xdotool
 pip3 install dlib mediapipe scipy numpy
@@ -79,8 +77,12 @@ A demonstration of a hand gesture recognition program, part of a 'lazy assistant
 
 ### Project Demo
 # Video
-[(https://drive.google.com/file/d/12A17TOKXQZdr1_WQnOqhTeqeTAZhvpXc/view?usp=drivesdk)]
-*Explain what the video demonstrates*
+[https://drive.google.com/file/d/12A17TOKXQZdr1_WQnOqhTeqeTAZhvpXc/view?usp=drivesdk)]
+
+It is  a video showing what our project does.
+A yawn: If it sees you yawn while a video is playing, it automatically pauses it for you.
+An open hand: If you hold up your hand, it automatically switches the tab in your browser.
+Two open hands:If you hold up both your hands,the tab closes.
 
 
 ## Team Contributions
