@@ -5,12 +5,12 @@
 
 
 ## Basic Details
-### Team Name: [Cheesecake]
+### Team Name: Cheesecake
 
 
 ### Team Members
-- Team Lead: [Sankar B] - [MITS]
-- Member 1: [Linsa Biji] - [MITS]
+- Team Lead: Sankar B - MITS
+- Member 1: Linsa Biji - MITS
 
 ### Project Description
 
@@ -86,8 +86,8 @@ Two open hands:If you hold up both your hands,the tab closes.
 
 
 ## Team Contributions
-- [Sankar]: [My work involved building its central feature—a real-time computer vision engine for yawn and gesture detection using Python, OpenCV, and MediaPipe]
-- [Linsa]: [I used Roboflow to train the custom detection model, from preparing the dataset and training the model.]
+- Sankar: [My work involved building its central feature—a real-time computer vision engine for yawn and gesture detection using Python, OpenCV, and MediaPipe]
+- Linsa: [I used Roboflow to train the custom detection model, from preparing the dataset and training the model.]
   
 ---
 Made with ❤️ at TinkerHub Useless Projects 
