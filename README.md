@@ -1,28 +1,97 @@
-# 💤 Lazy Assistant – Because Why Not? ✋
+<img width="3188" height="1202" alt="frame (3)" src="https://github.com/user-attachments/assets/517ad8e9-ad22-457d-9538-a9e62d137cd7" />
 
-Ever wished your computer could just... *do stuff* when you make random faces or wave at it?  
-Meet **Lazy Assistant** – the totally unnecessary but weirdly satisfying project that reacts to your yawns, eye-shutting moments, and palm waves.
 
-## 🤔 What It Does
-- **Yawn** 😪 → Instantly hits `Space` for you (perfect for pausing YouTube mid-binge).
-- **show a 'perfect' hand sign** 😴 → Sends your PC straight to sleep (and maybe you too).
-- **Show your palm** ✋ → Switches to the next browser tab (Ctrl+Tab magic).
+# [Lazy_assistant] 🎯
 
-Basically, it’s like having a lazy, slightly creepy roommate that watches you through your webcam and pushes buttons for you.
 
-## 🛠 What You’ll Need
-- Python 3.8+  
-- A webcam (built-in or USB)  
-- A trained [Teachable Machine](https://teachablemachine.withgoogle.com/) model with:
-  - `yawn`
-  - `eyes_closed`
-  - `palm`
-- Two files from Teachable Machine:
-  - `keras_model.h5` (the brain)
-  - `labels.txt` (the brain’s dictionary)
+## Basic Details
+### Team Name: [Cheesecake]
 
-## 📦 How to Set It Up
-1. Clone this repo or just throw all the files in one folder.
-2. Install all the Python magic:
-   ```bash
-   pip install opencv-python pyautogui tensorflow numpy pillow keyboard
+
+### Team Members
+- Team Lead: [Sankar B] - [MITS]
+- Member 1: [Linsa Biji] - [MITS]
+
+### Project Description
+
+This project uses your webcam to spot when you yawn or show certain hand gestures to control media and browser tabs without touching the keyboard. When you yawn, it pauses YouTube, a simple hand wave switches tabs, and showing the victory sign closes the tab. It’s a fun way to interact hands-free using some cool face and hand tracking tech.
+
+ 
+### The Problem (that doesn't exist)
+Why bother using your hands when you can just yawn or flash a peace sign to control your computer? Because lazy tech is the best tech!
+ 
+### The Solution (that nobody asked for)
+Control your computer with yawns and peace signs — no fingers required! It’s the laziest, quirkiest way to pause videos and switch tabs, just because you can.
+
+
+
+## Technical Details
+### Technologies/Components Used
+For Software:
+
+OpenCV: For capturing and processing video frames in real-time.
+Dlib: To detect facial landmarks and calculate mouth aspect ratio for yawn detection.
+MediaPipe Hands: For accurate hand tracking and gesture recognition.
+xdotool: A Linux utility to simulate keyboard inputs like space, ctrl+tab, and ctrl+w.
+Python: The main programming language used to integrate all components seamlessly.
+
+
+### Implementation
+For Software:
+# Installation
+
+sudo apt update
+sudo apt install -y python3-pip python3-opencv xdotool
+pip3 install dlib mediapipe scipy numpy
+
+# Run
+python3 -m venv venv(for debain based , just python -m venv venv for arch based distros)
+source venv/bin/activate
+python3 lazy_assistant.py
+
+### Project Documentation
+For Software:
+
+Source Code: Contains the main Python script integrating OpenCV, Dlib, and MediaPipe for real-time yawn and hand gesture detection.
+Dependencies: Requires Python 3, OpenCV, Dlib, MediaPipe, SciPy, NumPy, and xdotool installed on a Linux system.
+Data Files: Includes the shape_predictor_68_face_landmarks.dat file for facial landmark detection.
+Usage: Captures webcam video, detects yawns and hand gestures, and sends keyboard commands to control media playback and browser tabs.
+Gesture Logic:
+Yawn detection uses mouth aspect ratio (MAR) thresholding.
+Hand gestures are detected with MediaPipe; a victory sign triggers tab close (Ctrl + W), other hand detections switch tabs (Ctrl + Tab).
+User Interaction: Real-time visual feedback via OpenCV window displaying webcam feed with landmarks and gesture outlines.
+
+# Screenshots (Add at least 3)
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/155389fe-65a0-4d28-9e4c-b07d4b455bc4" />
+
+*Add caption explaining what this shows*
+
+![Screenshot2](Add screenshot 2 here with proper name)
+*Add caption explaining what this shows*
+
+![Screenshot3](Add screenshot 3 here with proper name)
+*Add caption explaining what this shows*
+
+# Diagrams
+![Workflow](Add your workflow/architecture diagram here)
+*Add caption explaining your workflow*
+
+
+### Project Demo
+# Video
+[Add your demo video link here]
+*Explain what the video demonstrates*
+
+
+## Team Contributions
+- [Sankar]: [Specific contributions]
+- [Linsa]: [Specific contributions]
+  
+---
+Made with ❤️ at TinkerHub Useless Projects 
+
+![Static Badge](https://img.shields.io/badge/TinkerHub-24?color=%23000000&link=https%3A%2F%2Fwww.tinkerhub.org%2F)
+![Static Badge](https://img.shields.io/badge/UselessProjects--25-25?link=https%3A%2F%2Fwww.tinkerhub.org%2Fevents%2FQ2Q1TQKX6Q%2FUseless%2520Projects)
+
+
+
