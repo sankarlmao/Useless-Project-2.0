@@ -1,3 +1,4 @@
-pip install opencv-python pyautogui tensorflow numpy pillow keyboard
+1pip install opencv-python pyautogui tensorflow numpy pillow keyboard
 
 install this shape_predictor_68_face_landmarks.dat.bz2 (dlib model) and copy it to the program directory
+--------------------------------------------------------------------------------------------------------
